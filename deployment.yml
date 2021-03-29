@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-notify-deployment
+  namespace: kube-honduras
+  labels:
+    app: ms-notify-honduras
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-notify-honduras
+  template:
+    metadata:
+      labels:
+        app: ms-notify-honduras
+    spec:
+      containers:
+      - env:
+        - name: LOGO_HONDURAS
+          value: honduras.png
+        - name: LOGO_BID
+          value: bid.jpg  
+        - name: LOGSTASH_SERVER
+          value: logstash:4560
+        - name: MAILFROM
+          value: sipac@investhonduras.hn
+        - name: MAILHOST
+          value: smtp.gmail.com
+        - name: MAILPASSWORD
+          value: "sipacinv#2020"
+        - name: MAILPORT
+          value: "587"
+        - name: MAILUSERNAME
+          value: "sipac@investhonduras.hn"
+        - name: PORT_SERVER
+          value: "8084"
+        - name: RHOST
+          value: redis-service
+        - name: RPORT
+          value: "6379"
+        - name: MAILAUTH
+          value: "true"
+        - name: MAILTLS
+          value: "true"
+        - name: URLATTEMPTPASSWORD
+          value: https://{{SIPAC_HOSTNAME}}/home/users
+        - name: URLCHANGEPASSWORD
+          value: https://{{SIPAC_HOSTNAME}}/home/users
+        - name: URLCOMPLETEPASSWORD
+          value: https://{{SIPAC_HOSTNAME}}/security/complete-password
+        - name: URLFORGETPASSWORD
+          value: https://{{SIPAC_HOSTNAME}}/security/complete-password
+        - name: URLINVITATIONUSER
+          value: https://{{SIPAC_HOSTNAME}}/security/complete-password
+        - name: URLUPDATESTATEUSER
+          value: https://{{SIPAC_HOSTNAME}}/home/users
+        - name: URLUPDATEUSER
+          value: https://{{SIPAC_HOSTNAME}}/home/users
+        - name: MS-API-GATEWAY
+          value: http://ms-security:8090/          
+        image:  {{DOCKER_IMAGE_TAG}}
+        name: ms-notify
+        resources:
+          requests:
+            cpu: 120m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+      hostname: ms-notify
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-notify
+  namespace: kube-honduras
+  labels:
+    app: ms-notify-honduras
+spec:
+  selector:
+    app: ms-notify-honduras
+  ports:
+    - protocol: TCP
+      port: 8084
+      targetPort: 8084
+      name: http
+  type: NodePort
